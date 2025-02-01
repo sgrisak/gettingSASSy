@@ -1,0 +1,258 @@
+@use "sass:map";
+@use "sass:color";
+
+// Theme Definitions
+$themes: (
+  "primary": (
+    bg: #007bff,
+    text: #fff,
+    border: #0056b3,
+  ),
+  "secondary": (
+    bg: #6c757d,
+    text: #fff,
+    border: #545b62,
+  ),
+  "success": (
+    bg: #28a745,
+    text: #fff,
+    border: #1e7e34,
+  ),
+  "danger": (
+    bg: #dc3545,
+    text: #fff,
+    border: #bd2130,
+  ),
+);
+
+// Size Variations
+$sizes: (
+  "sm": (
+    padding: 0.25rem 0.5rem,
+    font-size: 0.875rem,
+  ),
+  "md": (
+    padding: 0.75rem 1.5rem,
+    font-size: 1rem,
+  ),
+  "lg": (
+    padding: 1rem 2rem,
+    font-size: 1.25rem,
+  ),
+);
+
+// Border Radius Variations
+$border-radius: (
+  "default": 4px,
+  "rounded": 8px,
+  "pill": 50rem,
+);
+
+// Animation Keyframes
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+// Mixins
+@mixin button-variant($theme) {
+  $bg: map.get($theme, bg);
+  $text: map.get($theme, text);
+  $border: map.get($theme, border);
+
+  background-color: $bg;
+  color: $text;
+  border: 1px solid $border;
+
+  &:hover {
+    background-color: color.adjust($bg, $lightness: -10%);
+    border-color: color.adjust($border, $lightness: -12%);
+  }
+
+  &:active {
+    background-color: color.adjust($bg, $lightness: -15%);
+    border-color: color.adjust($border, $lightness: -17%);
+  }
+}
+
+@mixin button-outline-variant($theme) {
+  $bg: map.get($theme, bg);
+  $text: map.get($theme, text);
+
+  color: $bg;
+  border: 2px solid $bg;
+  background: transparent;
+
+  &:hover {
+    color: $text;
+    background-color: $bg;
+  }
+}
+
+@mixin button-gradient-variant($theme) {
+  $bg: map.get($theme, bg);
+  $light: color.adjust($bg, $lightness: 10%);
+  $dark: color.adjust($bg, $lightness: -10%);
+
+  background: linear-gradient(45deg, $dark, $light);
+  border: none;
+  color: map.get($theme, text);
+
+  &:hover {
+    background: linear-gradient(45deg, $light, $dark);
+  }
+}
+
+@mixin button-disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+// Base Button Styles
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: map.get($border-radius, "default");
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+  text-decoration: none;
+  overflow: hidden;
+
+  // Size Variants
+  @each $size, $values in $sizes {
+    &-#{$size} {
+      padding: map.get($values, padding);
+      font-size: map.get($values, font-size);
+    }
+  }
+
+  // Block Level
+  &-block {
+    display: flex;
+    width: 100%;
+  }
+
+  // Border Radius Variants
+  @each $name, $value in $border-radius {
+    &-#{$name} {
+      border-radius: $value;
+    }
+  }
+
+  // Icon Only
+  &.icon-only {
+    padding: 0.5rem;
+    aspect-ratio: 1;
+
+    .icon {
+      margin: 0;
+    }
+  }
+
+  // Loading State
+  &.loading {
+    position: relative;
+
+    // Hide the text but keep the button size
+    > * {
+      visibility: hidden;
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      width: 0.75rem;
+      height: 0.75rem;
+      top: 50%;
+      left: 50%;
+      margin: -0.5rem 0 0 -0.5rem;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+      border-right-color: transparent;
+      animation: spin 0.75s infinite linear;
+    }
+  }
+
+  // Ripple Effect
+  &.ripple {
+    &::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 1rem;
+      height: 1rem;
+      background-color: rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      transform: scale(0);
+      opacity: 1;
+      pointer-events: none;
+    }
+
+    &:active::before {
+      animation: ripple 0.6s linear;
+    }
+  }
+
+  // Disabled State
+  &:disabled,
+  &.disabled {
+    @include button-disabled;
+  }
+
+  // Icon Support
+  .icon {
+    width: 1em;
+    height: 1em;
+  }
+}
+
+// Theme Variants
+@each $name, $theme in $themes {
+  .btn-#{$name} {
+    @include button-variant($theme);
+  }
+
+  .btn-outline-#{$name} {
+    @include button-outline-variant($theme);
+  }
+
+  .btn-gradient-#{$name} {
+    @include button-gradient-variant($theme);
+  }
+}
+
+// Button Group Styles
+.btn-group {
+  display: inline-flex;
+
+  .btn {
+    border-radius: 0;
+
+    &:first-child {
+      border-top-left-radius: map.get($border-radius, "default");
+      border-bottom-left-radius: map.get($border-radius, "default");
+    }
+
+    &:last-child {
+      border-top-right-radius: map.get($border-radius, "default");
+      border-bottom-right-radius: map.get($border-radius, "default");
+    }
+
+    &:not(:last-child) {
+      border-right-width: 0;
+    }
+  }
+}
